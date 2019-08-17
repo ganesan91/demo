@@ -11,11 +11,13 @@ import java.util.Map;
 
 public class ApiBaseClass {
 
-    private String BASE_URL = "http://192.168.0.8:3001";
+    private String BASE_URL = "https://tranquil-ridge-49349.herokuapp.com";
     private String BASE_URI = "/api/v1";
     private String LOGIN_URI = "/users/authenticate";
     private String QUESTIONS_URI = "/questions";
     private String ADD_QUESTION_URI = "/new";
+    protected static String USERNAME = "test";
+    protected static String PASSWORD = "test";
 
 
     /**
@@ -63,12 +65,13 @@ public class ApiBaseClass {
         return request.delete(BASE_URI + QUESTIONS_URI+"/"+id);
     }
 
-    public Response addQuestion(JSONObject jsonObject)
+    public Response addQuestion(JSONObject jsonObject, String token)
     {
-            RequestSpecification request = RestAssured.given();
-            request.header("Content-Type", "application/json");
-            request.body(jsonObject);
-            return request.post(BASE_URI + QUESTIONS_URI + ADD_QUESTION_URI);
+        RequestSpecification request = RestAssured.given();
+        request.header("Authorization", "Bearer "+ token);
+        request.header("Content-Type", "application/json");
+        request.body(jsonObject.toString());
+        return request.post(BASE_URI + QUESTIONS_URI + ADD_QUESTION_URI);
     }
 
 }

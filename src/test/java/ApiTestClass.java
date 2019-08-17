@@ -3,6 +3,9 @@ import Utils.ApiBaseClass;
 import Utils.ApiHelperClass;
 
 import io.restassured.response.Response;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -13,24 +16,18 @@ import java.util.Map;
 
 public class ApiTestClass extends ApiBaseClass {
 
-    private static String USERNAME = "test";
-    private static String PASSWORD = "test";
-    private String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsImlhdCI6MTU2NTk0Mjg5M30.Rl9R-TVdMrvKdlct1oBTf_XwnjouaxCaDT0w9mclVd0";
-    private String invalidToken = "ciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsImlhdCI6MTU2NTk0Mjg5M30.Rl9R-TVdMrvKdlct1oBTf_XwnjouaxCaDT0w9mclVd0";
+    private static String token;
+    private static String invalidToken = "ciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsImlhdCI6MTU2NTk0Mjg5M30.Rl9R-TVdMrvKdlct1oBTf_XwnjouaxCaDT0w9mclVd0";
     ApiHelperClass apiHelper;
     List<String> keys = new ArrayList<String>();
 
     @BeforeClass
     public void setup()
     {
-        keys.add("text");
-        keys.add("type");
-        keys.add("options");
-        keys.add("id");
-
+        addKeys();
         setBaseUri();
         apiHelper = new ApiHelperClass();
-        loginApiTest();
+        loginApiTest(USERNAME, PASSWORD,200);
         // We can add any configurations/setup to be done before starting actual tests
     }
 
@@ -44,56 +41,83 @@ public class ApiTestClass extends ApiBaseClass {
         }
         Response response = getQuestions(tokenData);
         Assert.assertEquals(apiHelper.getResponseStatusCode(response), expectedStatusCode, "Error getting questions : " + response.getStatusLine());
-        System.out.println(response.getStatusLine());
-        System.out.println(response.asString());
     }
 
     @Test(dataProviderClass = DataProviderClass.class, dataProvider = "getQuestionUsingIdApiTestDataProvider")
     public void getQuestionUsingIdApiTest(String ID, int expectedStatusCode, boolean validToken)
     {
+        int status;
         String tokenData = token;
         if(!validToken)
         {
             tokenData=invalidToken;
         }
         Response response = getQuestionUsingId(ID, tokenData);
-        Assert.assertEquals(apiHelper.getResponseStatusCode(response), expectedStatusCode, "Error getting questions : " + response.getStatusLine());
-        Map<String, Object> getDataMap = apiHelper.getData(response);
-        Assert.assertNotNull(getDataMap, "Data should not be null");
-        validateData(getDataMap);
-        System.out.println(response.getStatusLine());
+        status = apiHelper.getResponseStatusCode(response);
+        Assert.assertEquals(status, expectedStatusCode, "Error getting questions : " + response.getStatusLine());
+        if (status == 200)
+        {
+            Map<String, Object> getDataMap = apiHelper.getData(response);
+            Assert.assertNotNull(getDataMap, "Data should not be null");
+            validateData(getDataMap);
+            System.out.println(response.getStatusLine());
+        }
     }
 
-    @Test(dataProviderClass = DataProviderClass.class, dataProvider = "getQuestionUsingIdApiTestDataProvider")
+    @Test(dataProviderClass = DataProviderClass.class, dataProvider = "deleteQuestionApiTestDataProvider")
     public void deleteQuestionApiTest(String ID, int expectedStatusCode, boolean validToken)
     {
+        int status;
         String tokenData = token;
         if(!validToken)
         {
             tokenData=invalidToken;
         }
-        Response response = getQuestionUsingId(ID, tokenData);
-        Assert.assertEquals(apiHelper.getResponseStatusCode(response), expectedStatusCode, "Error getting questions : " + response.getStatusLine());
-        Assert.assertNull(apiHelper.getData(response), "Data should be Null if deletion is successful");
-        System.out.println(response.getStatusLine());
+        Response deleteResponse = deleteQuestion(ID, tokenData);
+        status = apiHelper.getResponseStatusCode(deleteResponse);
+        Assert.assertEquals(status, expectedStatusCode, "Error deleting questions : " + deleteResponse.getStatusLine());
+        if (status == 200)
+        {
+            Response response = getQuestionUsingId(ID, tokenData);
+            Assert.assertEquals(apiHelper.getResponseStatusCode(response), 404, "Error getting questions : " + response.getStatusLine());
+            Assert.assertNull(apiHelper.getData(response), "Data should be Null if deletion is successful");
+            System.out.println(response.getStatusLine());
+        }
     }
 
-//    @Test
-//    public void createQuestionApiTest()
-//    {
-//        JSONArray options = new JSONArray();
-//        options.put(apiHelper.buildJsonObjectForOptions("true",true));
-//        options.put(apiHelper.buildJsonObjectForOptions("false",false));
-//
-//        Response response = addQuestion(apiHelper.buildJsonObjectToCreateQuestion("What is question 1?" , "tof", options));
-//        softAssert.assertEquals(apiHelper.getResponseStatusCode(response), 200, "Error getting questions : " + response.getStatusLine());
-//    }
-
-    public void loginApiTest()
+    @Test(dataProviderClass = DataProviderClass.class, dataProvider = "createQuestionApiTestDataProvider")
+    public void createQuestionApiTest(String question, String type, JSONArray options, int expectedStatusCode, boolean validToken )
     {
-        Response response = login(USERNAME,PASSWORD);
-        int responseCode = apiHelper.getResponseStatusCode(response);
-        Assert.assertEquals(responseCode, 200, "Login failed : " + response.getStatusLine());
+        int status;
+        String tokenData = token;
+        if(!validToken)
+        {
+            tokenData=invalidToken;
+        }
+        Response createResponse = addQuestion(apiHelper.buildJsonObjectToCreateQuestion( question, type, options), tokenData);
+        status = apiHelper.getResponseStatusCode(createResponse);
+        Assert.assertEquals(status, expectedStatusCode, "Error getting questions : " + createResponse.getStatusLine());
+        if(status == 200) {
+            Map<String, Object> getCreateDataMap = apiHelper.getData(createResponse);
+            Assert.assertNotNull(getCreateDataMap, "Data should not be null");
+            validateData(getCreateDataMap);
+            validateOptions(getCreateDataMap);
+            Response response = getQuestionUsingId(getCreateDataMap.get("id").toString(), tokenData);
+            Map<String, Object> getDataMap = apiHelper.getData(response);
+            Assert.assertNotNull(getDataMap, "Data should not be null");
+        }
+    }
+
+    @Test(dataProviderClass = DataProviderClass.class, dataProvider = "loginTestDataProvider")
+    public void loginApiErrorCaseTest(String username, String password, int expectedStatusCode)
+    {
+        loginApiTest(username, password, expectedStatusCode);
+    }
+
+    public void loginApiTest(String username, String password, int expectedStatusCode)
+    {
+        Response response = login(username,password);
+        Assert.assertEquals(apiHelper.getResponseStatusCode(response), expectedStatusCode, "Login failed : " + response.getStatusLine());
         System.out.println("Login Successful - " + apiHelper.getToken(response));
         token = apiHelper.getToken(response);
     }
@@ -107,5 +131,47 @@ public class ApiTestClass extends ApiBaseClass {
         }
     }
 
+    public void addKeys()
+    {
+        keys.add("text");
+        keys.add("type");
+        keys.add("options");
+        keys.add("id");
+    }
 
+    public void validateOptions(Map<String, Object> map)
+    {
+        String type = map.get("type").toString();
+        List<String> getTextValues = new ArrayList<String>();
+        List<String> getIsCorrectValues = new ArrayList<String>();
+
+        try{
+            JSONArray jsonArray = new   JSONArray(map.get("options").toString());
+            System.out.println(jsonArray.getJSONObject(0).get("text"));
+
+            for(int n = 0; n < jsonArray.length(); n++)
+            {
+                JSONObject object = jsonArray.getJSONObject(n);
+                Assert.assertTrue(object.has("text"), "Key \"text\" not found in option");
+                Assert.assertNotNull(object.get("text"), "\"Text\" value for options should not be null");
+                getTextValues.add(object.get("text").toString());
+                Assert.assertTrue(object.has("is_correct"), "Key \"is_correct\" not found in option");
+                Assert.assertNotNull(object.get("is_correct"), "\"is_correct\" value for options should not be null");
+                getIsCorrectValues.add(object.get("is_correct").toString());
+            }
+            if(type.equals("tof"))
+            {
+                Assert.assertEquals(jsonArray.length(), 2, "Number of options should be 2.");
+                Assert.assertTrue(getTextValues.contains("true"), "Text value should have \"true\" for type \"tof\".");
+                Assert.assertTrue(getTextValues.contains("false"), "Text value should have \"false\" for type \"tof\".");
+            }
+            Assert.assertTrue(getIsCorrectValues.contains("true"), "is_correct value should have \"true\".");
+            Assert.assertTrue(getIsCorrectValues.contains("false"), "is_correct value should have \"false\".");
+        }
+        catch (JSONException e)
+        {
+            System.out.println(e.getStackTrace());
+        }
+
+    }
 }

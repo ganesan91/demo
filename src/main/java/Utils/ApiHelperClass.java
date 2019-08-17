@@ -6,7 +6,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.HashMap;
 import java.util.Map;
 
 public class ApiHelperClass {
@@ -21,14 +20,9 @@ public class ApiHelperClass {
         return response.then().contentType(ContentType.JSON).extract().path("token");
     }
 
-    public String getDataValue(Map<String, Object> extract, String key)
-    {
-        return extract.get(key).toString();
-    }
-
     public Map<String, Object> getData(Response response)
     {
-        Map<String, Object> jsonAsMap = new HashMap<String, Object>();
+        Map<String, Object> jsonAsMap;
         jsonAsMap = response.then().contentType(ContentType.JSON).extract().path("data");
         return jsonAsMap;
     }
@@ -37,9 +31,9 @@ public class ApiHelperClass {
     {
         try {
             JSONObject requestParams = new JSONObject();
-            requestParams.put("options" , options);
-            requestParams.put("type",type);
             requestParams.put("text", question);
+            requestParams.put("type",type);
+            requestParams.put("options" , options);
             return requestParams;
         }
         catch (JSONException e)
@@ -63,5 +57,12 @@ public class ApiHelperClass {
             System.out.println("Exception during request body creation:" + e.getStackTrace());
         }
         return null;
+    }
+
+    public JSONArray createJsonArray(String text1, String text2, boolean status1, boolean status2) {
+        JSONArray options = new JSONArray();
+        options.put(buildJsonObjectForOptions(text1,status1));
+        options.put(buildJsonObjectForOptions(text2,status2));
+        return options;
     }
 }
