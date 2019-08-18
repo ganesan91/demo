@@ -49,7 +49,6 @@ public class ApiHelperClass {
             JSONObject option = new JSONObject();
             option.put("text", text);
             option.put("is_correct", is_correct);
-            System.out.println(option.toString());
             return option;
         }
         catch (JSONException e)

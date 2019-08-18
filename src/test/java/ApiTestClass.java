@@ -34,27 +34,19 @@ public class ApiTestClass extends ApiBaseClass {
     @Test(dataProviderClass = DataProviderClass.class, dataProvider = "getQuestionsApiTestDataProvider")
     public void getQuestionsApiTest(int expectedStatusCode, boolean validToken)
     {
-        String tokenData = token;
-        if(!validToken)
-        {
-            tokenData=invalidToken;
-        }
+        String tokenData = setToken(validToken);
         Response response = getQuestions(tokenData);
-        Assert.assertEquals(apiHelper.getResponseStatusCode(response), expectedStatusCode, "Error getting questions : " + response.getStatusLine());
+        Assert.assertEquals(apiHelper.getResponseStatusCode(response), expectedStatusCode, "Unexpected Status : " + response.getStatusLine());
     }
 
     @Test(dataProviderClass = DataProviderClass.class, dataProvider = "getQuestionUsingIdApiTestDataProvider")
     public void getQuestionUsingIdApiTest(String ID, int expectedStatusCode, boolean validToken)
     {
         int status;
-        String tokenData = token;
-        if(!validToken)
-        {
-            tokenData=invalidToken;
-        }
+        String tokenData = setToken(validToken);
         Response response = getQuestionUsingId(ID, tokenData);
         status = apiHelper.getResponseStatusCode(response);
-        Assert.assertEquals(status, expectedStatusCode, "Error getting questions : " + response.getStatusLine());
+        Assert.assertEquals(status, expectedStatusCode, "Unexpected Status : " + response.getStatusLine());
         if (status == 200)
         {
             Map<String, Object> getDataMap = apiHelper.getData(response);
@@ -68,18 +60,14 @@ public class ApiTestClass extends ApiBaseClass {
     public void deleteQuestionApiTest(String ID, int expectedStatusCode, boolean validToken)
     {
         int status;
-        String tokenData = token;
-        if(!validToken)
-        {
-            tokenData=invalidToken;
-        }
+        String tokenData = setToken(validToken);
         Response deleteResponse = deleteQuestion(ID, tokenData);
         status = apiHelper.getResponseStatusCode(deleteResponse);
-        Assert.assertEquals(status, expectedStatusCode, "Error deleting questions : " + deleteResponse.getStatusLine());
+        Assert.assertEquals(status, expectedStatusCode, "Unexpected Status : " + deleteResponse.getStatusLine());
         if (status == 200)
         {
             Response response = getQuestionUsingId(ID, tokenData);
-            Assert.assertEquals(apiHelper.getResponseStatusCode(response), 404, "Error getting questions : " + response.getStatusLine());
+            Assert.assertEquals(apiHelper.getResponseStatusCode(response), 404, "Unexpected Status while verifying delete : " + response.getStatusLine());
             Assert.assertNull(apiHelper.getData(response), "Data should be Null if deletion is successful");
             System.out.println(response.getStatusLine());
         }
@@ -89,14 +77,10 @@ public class ApiTestClass extends ApiBaseClass {
     public void createQuestionApiTest(String question, String type, JSONArray options, int expectedStatusCode, boolean validToken )
     {
         int status;
-        String tokenData = token;
-        if(!validToken)
-        {
-            tokenData=invalidToken;
-        }
+        String tokenData = setToken(validToken);
         Response createResponse = addQuestion(apiHelper.buildJsonObjectToCreateQuestion( question, type, options), tokenData);
         status = apiHelper.getResponseStatusCode(createResponse);
-        Assert.assertEquals(status, expectedStatusCode, "Error getting questions : " + createResponse.getStatusLine());
+        Assert.assertEquals(status, expectedStatusCode, "Unexpected Status :  " + createResponse.getStatusLine());
         if(status == 200) {
             Map<String, Object> getCreateDataMap = apiHelper.getData(createResponse);
             Assert.assertNotNull(getCreateDataMap, "Data should not be null");
@@ -116,10 +100,14 @@ public class ApiTestClass extends ApiBaseClass {
 
     public void loginApiTest(String username, String password, int expectedStatusCode)
     {
+        int status;
         Response response = login(username,password);
-        Assert.assertEquals(apiHelper.getResponseStatusCode(response), expectedStatusCode, "Login failed : " + response.getStatusLine());
-        System.out.println("Login Successful - " + apiHelper.getToken(response));
-        token = apiHelper.getToken(response);
+        status = apiHelper.getResponseStatusCode(response);
+        Assert.assertEquals(apiHelper.getResponseStatusCode(response), expectedStatusCode, "Unexpected Status : " + response.getStatusLine());
+        if(status == 200) {
+            System.out.println("Login Successful - " + apiHelper.getToken(response));
+            token = apiHelper.getToken(response);
+        }
     }
 
     public void validateData(Map<String, Object> map)
@@ -147,8 +135,6 @@ public class ApiTestClass extends ApiBaseClass {
 
         try{
             JSONArray jsonArray = new   JSONArray(map.get("options").toString());
-            System.out.println(jsonArray.getJSONObject(0).get("text"));
-
             for(int n = 0; n < jsonArray.length(); n++)
             {
                 JSONObject object = jsonArray.getJSONObject(n);
@@ -173,5 +159,14 @@ public class ApiTestClass extends ApiBaseClass {
             System.out.println(e.getStackTrace());
         }
 
+    }
+
+    public String setToken(boolean validToken)
+    {
+        if(!validToken)
+        {
+            return invalidToken;
+        }
+        return token;
     }
 }
