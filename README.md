@@ -34,11 +34,14 @@ Bug 4 : createQuestionApiTest -> when request body input with type "tof" and has
 Bug 5 : deleteQuestionApiTest -> Delete api is not working, question is not getting deleted though delete API returns 200 success.
 Bug 6 : deleteQuestionApiTest -> Deleting with question id that doesn't exists should return 404, but returns 200 success.
 Bug 7 : getQuestionUsingIdApiTest -> Get api with question id that doesn't exists should return 404, but returns 200 success.
-Bug 8 : getQuestionsApiTest -> Get api with invalid token should return 401, but returns 200 success.
-Bug 9 : loginApiErrorCaseTest -> Login with invalid username/credentials should return 401, but returns 400 bad request.
+Bug 8 : getQuestionUsingIdApiTest -> when response data doesn't have one field, test should fail - data inconsistency.
+Bug 9 : getQuestionUsingIdApiTest -> when response data have one field with empty value, test should fail - data inconsistency.
+Bug 10 : getQuestionUsingIdApiTest -> when response data with type "tof" and has options with text value other than true/false - data inconsistency.
+Bug 11 : getQuestionsApiTest -> Get api with invalid token should return 401, but returns 200 success.
+Bug 12 : loginApiErrorCaseTest -> Login with invalid username/credentials should return 401, but returns 400 bad request.
 
 Further Enhancements : 
-- Dynamic building data providers
+- Dynamically building data providers
 - Logging
 - Java doc
 - Creating constants

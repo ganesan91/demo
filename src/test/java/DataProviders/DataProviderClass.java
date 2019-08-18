@@ -11,6 +11,9 @@ public class DataProviderClass {
     public Object[][] getQuestionUsingIdApiTestDataProvider(){
         return new Object[][]{
                 {"5d580bccfa4e880017257ed7", 200, true},
+                {"5d559ec2cb22b639887f2d1a", 200, true},
+                {"5d55a36a5995364290e4bc81", 200, true},
+                {"5d5654b802a84491ca49adf0", 200, true},
                 {"5d55a36a5995364290e4bc82", 404, true},
                 {"5d55a36a5995364290e4bc81", 401, false}
         };
