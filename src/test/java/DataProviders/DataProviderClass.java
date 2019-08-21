@@ -1,11 +1,15 @@
 package DataProviders;
 
-import Utils.ApiHelperClass;
+import pages.QuestionsPage;
+import utils.api.ApiHelperClass;
+import pages.LoginPage;
 import org.testng.annotations.DataProvider;
 
 public class DataProviderClass {
 
     ApiHelperClass apiHelperClass = new ApiHelperClass();
+    LoginPage loginPage = new LoginPage();
+    QuestionsPage questionsPage = new QuestionsPage();
 
     @DataProvider(name="getQuestionUsingIdApiTestDataProvider")
     public Object[][] getQuestionUsingIdApiTestDataProvider(){
@@ -68,4 +72,25 @@ public class DataProviderClass {
         };
     }
 
+    @DataProvider(name="uiLoginTestDataProvider")
+    public Object[][] uiLoginTestDataProvider(){
+        return new Object[][]{
+                {"test", "", loginPage.getPasswordErrorText(), false},
+                {"", "test", loginPage.getUsernameErrorText(), false},
+                {"test1", "test1", loginPage.getLoginErrorText(), false},
+                {"test", "test", loginPage.getLogOutText(), false},
+                {"test", "test", loginPage.getLogOutText(), true}
+        };
+    }
+
+    @DataProvider(name="uiCreateQuestionTestDataProvider")
+    public Object[][] uiCreateQuestionTestDataProvider(){
+        return new Object[][]{
+                {"test1", "MCQ" , questionsPage.getOptionsForMcq(), false , questionsPage.getCreateSuccessText(), false},
+                {"", "MCQ", questionsPage.getOptionsForMcq(), true, questionsPage.getCreateErrorText(), false},
+//                {"test2", "TOF", questionsPage.getOptionsForTof(), false,  questionsPage.getCreateSuccessText(), false},
+                {"test3", "TOF", questionsPage.getOptionsForMcq(), true, questionsPage.getCreateErrorText(), false}
+//                {"test4", "MCQ", questionsPage.getOptionsForTof(), false, questionsPage.getCreateSuccessText(), false}
+        };
+    }
 }

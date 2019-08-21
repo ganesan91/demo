@@ -1,6 +1,6 @@
 import DataProviders.DataProviderClass;
-import Utils.ApiBaseClass;
-import Utils.ApiHelperClass;
+import utils.api.ApiBaseClass;
+import utils.api.ApiHelperClass;
 
 import io.restassured.response.Response;
 import org.json.JSONArray;

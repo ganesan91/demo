@@ -1,0 +1,10 @@
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
+
+<suite name="XSEED API automation interview test" verbose="1">
+    <test name="API Autoamtion Testt">
+        <classes>
+            <class name="ApiTestClass"/>
+        </classes>
+    </test>
+</suite>
+
